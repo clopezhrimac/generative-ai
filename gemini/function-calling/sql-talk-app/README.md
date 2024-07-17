@@ -1,9 +1,5 @@
 # SQL Talk: Natural Language to BigQuery with Gemini's Function Calling
 
-|           |                                                     |
-| --------- | --------------------------------------------------- |
-| Author(s) | [Kristopher Overholt](https://github.com/koverholt) |
-
 ## Overview
 
 This app demonstrates the power of
@@ -12,24 +8,6 @@ capabilities, enabling users to query and understand their
 [BigQuery](https://cloud.google.com/bigquery) databases using natural language.
 Forget complex SQL syntax – interact with your data conversationally.
 
-Function Calling in Gemini lets developers create a description of a function in
-their code, then pass that description to a language model in a request. The
-response from the model includes the name of a function that matches the
-description and the arguments to call it with.
-
-Try using the demo app now! [https://sql-talk-r5gdynozbq-uc.a.run.app/](https://sql-talk-r5gdynozbq-uc.a.run.app/)
-
-![SQL Talk Demo App](sql-talk.png)
-
-[![AI Data Agent with Gemini API | Build with Google AI](https://img.youtube.com/vi/pj5mRDy9lG8/0.jpg)](https://www.youtube.com/watch?v=pj5mRDy9lG8)
-
-## Prerequisites
-
-- A Google Cloud project with billing enabled
-- A BigQuery dataset (we used the
-  [`thelook_ecommerce` public dataset](https://console.cloud.google.com/marketplace/product/bigquery-public-data/thelook-ecommerce))
-- APIs for Vertex AI, BigQuery, BigQuery Data Transfer, and Cloud Run enabled
-- Familiarity with Python and SQL concepts
 
 ## Run and modify the app in Cloud Shell Editor
 
@@ -38,17 +16,8 @@ the SQL Talk app and make changes to the live app using the Cloud Shell Editor
 in your own Google Cloud project.
 
 [Open this repository and the sample app in the Cloud Shell
-Editor](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/GoogleCloudPlatform/generative-ai.git&cloudshell_workspace=gemini/function-calling/sql-talk-app/&cloudshell_tutorial=tutorial.md&cloudshell_open_in_editor=app.py),
+Editor](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/clopezhrimac/generative-ai.git&cloudshell_workspace=gemini/function-calling/sql-talk-app/&cloudshell_tutorial=tutorial.md&cloudshell_open_in_editor=app.py),
 then follow the steps displayed in the tutorial in the sidebar.
-
-## Additional resources
-
-You can learn more about Function Calling in Gemini with these guides and
-resources:
-
-- [Documentation on Function Calling in Gemini](https://cloud.google.com/vertex-ai/docs/generative-ai/multimodal/function-calling)
-- [Codelab on How to Interact with APIs Using Function Calling in Gemini](https://codelabs.developers.google.com/codelabs/gemini-function-calling)
-- [Sample notebook for Function Calling with the Gemini API](https://github.com/GoogleCloudPlatform/generative-ai/blob/main/gemini/function-calling/intro_function_calling.ipynb)
 
 ## (Optional) Deploy the app to Cloud Run
 
@@ -71,9 +40,3 @@ similar to:
 gcloud run deploy sql-talk --allow-unauthenticated --region us-central1 --service-account SERVICE_ACCOUNT_NAME@PROJECT_ID.iam.gserviceaccount.com --source .
 ```
 
-After deploying your app, you should can visit the app URL, which should be
-similar to:
-
-[https://sql-talk-r5gdynozbq-uc.a.run.app/](https://sql-talk-r5gdynozbq-uc.a.run.app/)
-
-Congratulations, you've successfully deployed the SQL Talk demo app!
