@@ -52,10 +52,6 @@ with col2:
 
 st.subheader("Powered by Gemini")
 
-# st.markdown(
-#     "[Source Code](https://github.com/GoogleCloudPlatform/generative-ai/tree/main/gemini/function-calling/sql-talk-app/)   •   [Documentation](https://cloud.google.com/vertex-ai/docs/generative-ai/multimodal/function-calling)"
-# )
-
 with st.expander("Ejemplos de promt", expanded=True):
     st.write(
         """
@@ -66,9 +62,6 @@ with st.expander("Ejemplos de promt", expanded=True):
     """
     )
 
-def submit():
-    st.session_state.user_input_prompt = st.session_state.user_input
-    st.session_state.user_input = ''
 
 def initialize_session_state():
     if "chat_session" not in st.session_state:
@@ -79,6 +72,8 @@ def initialize_session_state():
     if "uploaded_files" not in st.session_state:
         st.session_state.uploaded_files = []
         st.session_state.uploaded_files_uris = []
+    if "uploaded_xlsx" not in st.session_state:
+        st.session_state.uploaded_xlsx = None
     if 'user_input_prompt' not in st.session_state: # This one is specifically use for clearing the user text input after they hit enter
         st.session_state.user_input_prompt = 'None'
     if "file_uploader_key" not in st.session_state:
@@ -86,33 +81,13 @@ def initialize_session_state():
     if 'model_processing' not in st.session_state:
         st.session_state.model_processing = False
 
-def reset_session_state():
-    st.session_state["file_uploader_key"] += 1
-    st.session_state.uploaded_files = None
-    st.session_state.uploaded_files_uris = []
-    # st.rerun()
-    print("********** HISTORY ***************")
-    print(st.session_state.messages)
-
 def print_chat_history(chat):
     print("Chat History:")
     print(chat.history)
-    # for message in chat.history:
-    #     print(f'**{message.role}**:')
-    #     for part in message.parts:
-    #         if part.mime_type == "application/pdf":
-    #             print(f'PDF URI: {part.uri}')
-    #         else:
-    #             print(part.text)
-    #     print("\n")
-
-
 ############################################# Main #############################################
 
 # Initialize the session state variables
 initialize_session_state()
-
-# chat = model.start_chat()
 
 # rednderizar todo
 for message in  st.session_state.messages:
@@ -128,6 +103,7 @@ with st.sidebar:
         # Use to check if PDFs are uploaded
         st.session_state.uploaded_files = uploaded_files
         st.session_state.uploaded_files_uris = []
+    uploaded_xlsx = st.file_uploader("Elija un Excel", type="xlsx")
 
 def debug(text=''):
     print(text)
