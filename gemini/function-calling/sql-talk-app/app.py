@@ -20,39 +20,80 @@ api_tool = Tool(
     function_declarations=[permanence_func, query_api_func],
 )
 
-# model = GenerativeModel(
-#     "gemini-1.5-pro-001",
-#     generation_config={"temperature": 0},
-#     tools=[api_tool],
-# )
-
 model = GenerativeModel(
     "gemini-1.5-flash-001",
     generation_config={"temperature": 0},
     system_instruction="""
         Eres un analista de reclutamiento especializado en selección de perfiles de asesores de venta, tu tarea es encontrar los perfiles más adecuados para la siguiente posición :
 
+        DESCRIPCIÓN DE LA POSICIÓN:
         Nombre de la posición : Asesor de Venta Multiproducto para Rimac
         Misión :
-        - Ser el referente comercial de los clientes mediante un asesoramiento personalizado sobre su protección familiar y patrimonial y necesidades de ahorro e inversión a la cartera de cliente prosperous
-        - Cumplir/superar los objetivos de adquisición de nuevos clientes e incremento de la vinculación, permanencia y satisfacción la de los clientes asignados en su cartera asegurando su rentabilidad 
+        - Ser el referente comercial de los clientes mediante un asesoramiento personalizado sobre su protección familiar y patrimonial y necesidades de ahorro
+        - Cumplir/superar los objetivos de adquisición de nuevos clientes e incremento de la vinculación, permanencia y satisfacción la de los clientes asignados en su cartera asegurando su rentabilidad ​
 
         Funciones:
-        - Captar nuevos clientes trabajando las bases asignadas por Rimac
-        - Entender y evaluar las necesidades de su cartera de clientes según sus circunstancias personales individuales y familiares
-        - Asesorar a los clientes sobre las coberturas, pólizas y soluciones de ahorro e inversión que más se adecuen a las necesidades de los clientes y su perfil de aversión al riesgo
-        - Seguimiento de la totalidad de los casos abiertos del cliente dentro de Rimac
-        - Derivar oportunidades comerciales a otros canales de potenciales clientes que no pertenecen al segmento Prosperous (salvo que tengan una relación familiar cercana)
-        - Promocionar los beneficios dentro del Ecosistema de Salud y Estar Bien
-        - En el momento de la venta, explicar y orientar al cliente en las herramientas disponibles para su posterior autogestión
-        - Fomentar el uso digital de los productos y servicios, con fin que el cliente tangibilice el valor generado
-        - Aplicar la sistemática comercial y los procedimientos marcados por Rimac 
-        - Apoyar su gestión con las oportunidades (leads) y alertas de gestión generadas por los modelos análiticos de Rimac
-        - Mantener un amplio conocimiento de los productos para poder dar respuesta a las necesidades de los clientes 
-        - Actualizar y mejorar la información de su cartera de clientes en los sistemas de información
+        - Captar nuevos clientes trabajando las bases asignadas por Rimac​
+        - Entender y evaluar las necesidades de su cartera de clientes según sus circunstancias personales individuales y familiares​
+        - Asesorar a los clientes sobre las coberturas, pólizas y soluciones de ahorro e inversión que más se adecuen a las necesidades de los clientes y su perfil de aversión al riesgo​
+        - Seguimiento de la totalidad de los casos abiertos del cliente dentro de Rimac​
+        - Derivar oportunidades comerciales a otros canales de potenciales clientes que no pertenecen
+        - Promocionar los beneficios dentro del Ecosistema de Salud y Estar Bien​
+        - En el momento de la venta, explicar y orientar al cliente en las herramientas disponibles para su posterior autogestión​
+        - Fomentar el uso digital de los productos y servicios, con fin que el cliente tangibilice el valor generado​
+        - Aplicar la sistemática comercial y los procedimientos marcados por Rimac ​
+        - Apoyar su gestión con las oportunidades (leads) y alertas de gestión generadas por los modelos análiticos de Rimac​
+        - Mantener un amplio conocimiento de los productos para poder dar respuesta a las necesidades de los clientes ​
+        - Actualizar y mejorar la información de su cartera de clientes en los sistemas de información​
         - Actuar con honestidad, integridad y ética profesional, priorizando siempre los intereses y necesidades del cliente sobre los propios y garantizando en todo momento, la confidencialidad de la información sensible de los clientes
 
-        Cuando inicie el sistema, saluda diciendo que eres TalenBot y pide que te envíen CVs para que los analices, una vez que te pasen el CV analiza el perfil y verifica si es o no adecuado para la posición
+        MENSAJE INICIAL :
+        ​Cuando inicie el sistema, saluda diciendo que eres TalenBot (el asistente de reclutamiento de Rimac ) y pide que te envíen los CVs para que los analices, una vez que los pasen el CV analiza los perfiles y verifica si es adecuado o no para la posición y da una calificación de 1 a 5 estrellas y la razón por la cuáles les pondrías esa calificación. 
+        Recuerda que tu personalidad como asistente es ejecutivo, conciso y amable
+
+        CRITERIOS ASIGNACIÓN ESTRELLAS:
+
+        Toda la información que se necesitan para los criterios de asignación los debes obtener del mismo CV
+
+        5 estrellas 
+        Asesores con más de 30 años de edad
+        Tiene experiencia en ventas de más 4 años
+        Con experiencia comprobada en los rubros de seguros generales, seguros vida y teleconsultas o telemarketing
+        Que su ultima experiencia no sea en banca
+        Personas que sean de carreras relacionadas a negocios, marketing, administración, ingeniería industrial
+
+        4 estrellas
+        Asesores con más de 30 años de edad
+        Tiene experiencia en ventas entre tres y cuatro años de experiencia
+        Que resida en Lima
+        Con experiencia comprobada en los rubros de seguros generales, seguros vida y teleconsultas o telemarketing
+        Que su ultima experiencia no sea en banca
+        Que no tengan experiencia en bancos
+
+        3 estrellas
+        Asesores entre 25 y 30 años de edad
+        Tiene experiencia en ventas entre dos y tres años de experiencia
+        Que resida en Lima
+        Con experiencia comprobada en los rubros de seguros generales, seguros vida y teleconsultas o telemarketing
+        Que, de preferencia, no tenga experiencia en banca
+
+
+        2 estrellas
+        Asesores menor a 25 años de edad
+        Tiene menos de dos años de experiencia
+        Que resida en Lima o Provincias del Perú
+        De preferencia que tenga experiencia laboral comprobada en los rubros de seguros generales, seguros de vida, teleconsultas, telemarketing, o otros rubros
+
+        1 estrella
+        Asesores menores a 25 años de edad
+        No tenga experiencia en ventas
+        Que resida en Lima o provincias del Perú
+
+        FORMA DE RESPONDER:
+        Debes mostrar la calificación final de las estrellas también los puntos fuertes, los aspectos a considerar y una conclusión final del perfil, no olvides usar emojis en los lugares necesarios
+
+        IMPORTANTE:
+        Te pueden enviar múltiples CVs a la vez
     """
 )
 
@@ -74,20 +115,6 @@ st.set_page_config(
     page_icon="vertex-ai.png",
     layout="wide",
 )
-
-# Load custom CSS
-# def load_css(file_name):
-#     with open(file_name) as f:
-#         st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-
-# load_css("styles.css")
-
-# header_html = """
-# <div class="header">
-#     <h2>Centro de Conocimiento</h2>
-# </div>
-# """
-# st.markdown(header_html, unsafe_allow_html=True)
 
 col1, col2 = st.columns([8, 1])
 with col1:
@@ -116,8 +143,8 @@ def submit():
     st.session_state.user_input = ''
 
 def initialize_session_state():
-    # if "chat" not in st.session_state:
-    #     st.session_state.chat = model.start_chat(history = [])
+    if "chat_session" not in st.session_state:
+        st.session_state.chat_session = model.start_chat(history = [])
     if "messages" not in st.session_state:
         st.session_state.messages = []
     # flags para flujo de archivo adjunto
@@ -139,21 +166,32 @@ def reset_session_state():
     print("********** HISTORY ***************")
     print(st.session_state.messages)
 
+def print_chat_history(chat):
+    print("Chat History:")
+    print(chat.history)
+    # for message in chat.history:
+    #     print(f'**{message.role}**:')
+    #     for part in message.parts:
+    #         if part.mime_type == "application/pdf":
+    #             print(f'PDF URI: {part.uri}')
+    #         else:
+    #             print(part.text)
+    #     print("\n")
+
 
 ############################################# Main #############################################
 
 # Initialize the session state variables
 initialize_session_state()
 
-chat = model.start_chat(history=[])
+# chat = model.start_chat()
 
 # rednderizar todo
 for message in  st.session_state.messages:
-    # print(f"history type element: {message}/{type(message)}")
     with st.chat_message(message["role"]):
         st.markdown(message["content"].replace("$", "\$"))  # noqa: W605
 # inicializar promt
-prompt = st.chat_input("Como te puedo ayudar?", disabled=st.session_state.model_processing)
+prompt = st.chat_input("Como te puedo ayudar?")
 
 # Crear file_uploader para múltiples archivos
 with st.sidebar:
@@ -173,7 +211,7 @@ def debug(text=''):
 
 def create_multimodal_message(file_uris, promt=""):
     documents = [Part.from_uri(mime_type="application/pdf", uri=uri) for uri in file_uris]
-    return documents + [promt]
+    return documents + [Part.from_text(prompt)]
 
 def update_uris():
     st.session_state.uploaded_files_uris = []
@@ -183,9 +221,6 @@ def update_uris():
         st.session_state.uploaded_files_uris.append(file_uri)
 
 debug("---->antes")
-# Logica de archivo adjunto
-# if "uploaded_files" in st.session_state and len(uploaded_files)>0:
-#     st.session_state.uploaded_files = uploaded_files
 #Chat
 if prompt:
     # Renderizar input del usuario
@@ -204,34 +239,24 @@ if prompt:
             prompt += """ Responde en español, por favor."""
             with st.spinner("Respondiendo..."):
                 st.session_state.model_processing = True
-                if st.session_state.uploaded_files and prompt:
-                    new_pdfs = []
-                    for uploaded_file in st.session_state.uploaded_files:
-                        destination_blob_name = f"{SUBFOLDER}/{uploaded_file.name}"
-                        if f"gs://{BUCKET_NAME}/{destination_blob_name}" not in st.session_state.uploaded_files_uris:
-                            new_pdfs.append(uploaded_file)
-                    for i, uploaded_file in enumerate(new_pdfs):
-                        destination_blob_name = f"{SUBFOLDER}/{uploaded_file.name}"
-                        print(f"Se subira el archivo: {uploaded_file.name} a STORAGE")
-                        file_uri = upload_to_gcs(BUCKET_NAME, uploaded_file, destination_blob_name)
-                        st.session_state.uploaded_files_uris.append(file_uri)
-                        new_pdfs[i] = file_uri
-                        print(f"uri: {file_uri}")
-                    update_uris()
-                    print(f"All uris: {st.session_state.uploaded_files_uris}")
-                    response = chat.send_message(create_multimodal_message(st.session_state.uploaded_files_uris, prompt),
-                                                            generation_config=generation_config, 
-                                                            safety_settings=safety_settings, stream=True)
-                else:
-                    print(f"Se enviaria solo texto: <{prompt}>")
-                    # Check if input contains only spaces
-                    
-                    response = chat.send_message(
-                        prompt, 
-                        generation_config=generation_config, 
-                        safety_settings=safety_settings,
-                        stream=True
-                        )
+                new_pdfs = []
+                for uploaded_file in st.session_state.uploaded_files:
+                    destination_blob_name = f"{SUBFOLDER}/{uploaded_file.name}"
+                    if f"gs://{BUCKET_NAME}/{destination_blob_name}" not in st.session_state.uploaded_files_uris:
+                        new_pdfs.append(uploaded_file)
+                for i, uploaded_file in enumerate(new_pdfs):
+                    destination_blob_name = f"{SUBFOLDER}/{uploaded_file.name}"
+                    print(f"Se subira el archivo: {uploaded_file.name} a STORAGE")
+                    file_uri = upload_to_gcs(BUCKET_NAME, uploaded_file, destination_blob_name)
+                    st.session_state.uploaded_files_uris.append(file_uri)
+                    new_pdfs[i] = file_uri
+                    print(f"uri: {file_uri}")
+                update_uris()
+                
+                mm_message = create_multimodal_message(st.session_state.uploaded_files_uris, prompt)
+                print(f"**** All uris + promt: {mm_message}")
+                response = st.session_state.chat_session.send_message(mm_message, generation_config=generation_config, safety_settings=safety_settings, stream=True)
+                
                 print(f'======> response: {response}')
                 try:
                     full_response = ""
@@ -263,3 +288,4 @@ if prompt:
                     "content": full_response,
                 }
             )
+            print_chat_history(st.session_state.chat_session)
