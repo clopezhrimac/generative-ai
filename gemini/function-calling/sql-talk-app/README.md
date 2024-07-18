@@ -4,14 +4,23 @@
 
 Demo
 
-
 ## Run and modify the app in Cloud Shell Editor
 
-After you've tried out the live demo app, you can also run your own version of
-the SQL Talk app and make changes to the live app using the Cloud Shell Editor
-in your own Google Cloud project.
-
+### 1. Open in Cloud Shell editor
 [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/clopezhrimac/generative-ai.git&cloudshell_workspace=gemini/function-calling/sql-talk-app/&cloudshell_open_in_editor=app.py)
+
+### 2. Set Credential
+- In the editor, create a file named**dev.json** with your service account file.
+
+### 3. Run the following commands in the terminal:
+```bash
+# Move to your code path
+cd ~/cloudshell_open/generative-ai/gemini/function-calling/sql-talk-app
+# Configure your project
+gcloud config set project rs-nprd-dlk-ia-dev-aif-d3d9
+# Run the server
+bash setup.sh
+```
 
 
 <!-- [Open this repository and the sample app in the Cloud Shell
