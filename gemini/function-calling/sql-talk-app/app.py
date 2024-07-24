@@ -9,6 +9,9 @@ import os
 import time
 import random
 from promts import *
+import pandas as pd
+from io import StringIO
+from contextlib import redirect_stdout
 # import google.generativeai as genai
 
 # Credenciales de Google Cloud
@@ -55,8 +58,8 @@ st.subheader("Powered by Gemini")
 with st.expander("Ejemplos de promt", expanded=True):
     st.write(
         """
-        - Resume el CV.
-        - Compara los CV en una tabla.
+        - Califica este candidato.
+        - Compara los candidatos en una tabla resumen.
         - Dame el numero de DNI de <nombre>.
         - Que candidato domina mas lenguajes.
     """
@@ -74,12 +77,16 @@ def initialize_session_state():
         st.session_state.uploaded_files_uris = []
     if "uploaded_xlsx" not in st.session_state:
         st.session_state.uploaded_xlsx = None
+    if "xlsx_df" not in st.session_state:
+        st.session_state.xlsx_df = None
     if 'user_input_prompt' not in st.session_state: # This one is specifically use for clearing the user text input after they hit enter
         st.session_state.user_input_prompt = 'None'
     if "file_uploader_key" not in st.session_state:
         st.session_state["file_uploader_key"] = 0
-    if 'model_processing' not in st.session_state:
-        st.session_state.model_processing = False
+    if "processing" not in st.session_state:
+        st.session_state.processing = False
+    # if 'model_processing' not in st.session_state:
+    #     st.session_state.model_processing = False
 
 def print_chat_history(chat):
     print("Chat History:")
@@ -94,16 +101,61 @@ for message in  st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"].replace("$", "\$"))  # noqa: W605
 # inicializar promt
-prompt = st.chat_input("Como te puedo ayudar?")
+prompt = st.chat_input("Como te puedo ayudar?", disabled=st.session_state.processing)
 
+def save_xlsx(uploaded_xlsx):
+    destination_blob_name = f"{SUBFOLDER}/{uploaded_xlsx.name}"
+    uri = upload_to_gcs(BUCKET_NAME, uploaded_xlsx, destination_blob_name)
+    print(f"uri del xlsx: {uri}")
+    return uri
 # Crear file_uploader para múltiples archivos
 with st.sidebar:
-    uploaded_files = st.file_uploader("Elija archivos PDF", type="pdf", accept_multiple_files=True, key=st.session_state["file_uploader_key"])
+    uploaded_files = st.file_uploader("Elija los CV de candidatos en PDF", type="pdf", accept_multiple_files=True, key=st.session_state["file_uploader_key"])
     if uploaded_files != []:
         # Use to check if PDFs are uploaded
         st.session_state.uploaded_files = uploaded_files
-        st.session_state.uploaded_files_uris = []
-    uploaded_xlsx = st.file_uploader("Elija un Excel", type="xlsx")
+        # st.session_state.uploaded_files_uris = []
+    uploaded_xlsx = st.file_uploader("Suba candidatos por Excel", type="xlsx")
+    if uploaded_xlsx != None:
+        st.session_state.uploaded_xlsx = uploaded_xlsx
+        print(f"filename: {uploaded_xlsx.name}")
+        df = pd.read_excel(uploaded_xlsx, dtype=str)
+        st.session_state.xlsx_df = df
+        # save_xlsx(uploaded_xlsx)
+        
+
+# if uploaded_xlsx != None:
+if st.session_state.uploaded_xlsx is not None:
+    st.subheader("Preview:")
+    st.write(st.session_state.xlsx_df.head(10))
+    if st.button("Confirmar carga de archivo"):
+        st.session_state.processing = True
+        save_xlsx(st.session_state.uploaded_xlsx)
+
+# if st.session_state.processing:
+#     progress_text = "Procesando archivo..."
+#     my_bar = st.progress(0, text=progress_text)
+#     for percent_complete in range(100):
+#         time.sleep(3)  # Simulate processing time
+#         my_bar.progress(percent_complete + 1, text=progress_text)
+#     st.success("Procesamiento completado!")
+#     st.session_state.processing = False
+
+if st.session_state.processing:
+    df = st.session_state.xlsx_df
+    total_rows = len(df)
+    total_time = total_rows * 10  # Total processing time in seconds
+    progress_text = "Procesando archivo..."
+    my_bar = st.progress(0, text=progress_text)
+    
+    for i, row in df.iterrows():
+        time.sleep(10)  # Simulate processing time for each row
+        progress = (i + 1) / total_rows
+        my_bar.progress(progress, text=f"{progress_text} ({int(progress * 100)}%)")
+    
+    st.success("Procesamiento completado!")
+    st.session_state.processing = False
+
 
 def debug(text=''):
     print(text)
@@ -117,72 +169,91 @@ def create_multimodal_message(file_uris, promt=""):
     documents = [Part.from_uri(mime_type="application/pdf", uri=uri) for uri in file_uris]
     return documents + [Part.from_text(prompt)]
 
-def update_uris():
-    st.session_state.uploaded_files_uris = []
-    for uploaded_file in st.session_state.uploaded_files:
+def save_new_files(uploaded_files):
+    new_files = []
+    for uploaded_file in uploaded_files:
         destination_blob_name = f"{SUBFOLDER}/{uploaded_file.name}"
         file_uri = f"gs://{BUCKET_NAME}/{destination_blob_name}"
-        st.session_state.uploaded_files_uris.append(file_uri)
+        print(f'session_state.uploaded_files_uris: {st.session_state.uploaded_files_uris}')
+        if file_uri not in st.session_state.uploaded_files_uris:
+            print(f"entro nuevo fiel: {file_uri}")
+            st.session_state.uploaded_files_uris.append(file_uri)
+            # Save the file to GCS
+            uri = upload_to_gcs(BUCKET_NAME, uploaded_file, destination_blob_name)
+            new_files.append(uri)
 
-debug("---->antes")
+    return new_files
+
+# debug("---->antes")
 #Chat
 if prompt:
     # Renderizar input del usuario
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
-
     if prompt.isspace():
-        # st.write("Input contains only spaces.")
         with st.chat_message("assistant"):
             st.markdown("Ingresa un texto no vacio por favor.")
     else:
         # Renderizar response modelo
         with st.chat_message("assistant"):
             message_placeholder = st.empty()
-            prompt += """ Responde en español, por favor."""
+            prompt += """, Responde en español, por favor."""
             with st.spinner("Respondiendo..."):
-                st.session_state.model_processing = True
-                new_pdfs = []
-                for uploaded_file in st.session_state.uploaded_files:
-                    destination_blob_name = f"{SUBFOLDER}/{uploaded_file.name}"
-                    if f"gs://{BUCKET_NAME}/{destination_blob_name}" not in st.session_state.uploaded_files_uris:
-                        new_pdfs.append(uploaded_file)
-                for i, uploaded_file in enumerate(new_pdfs):
-                    destination_blob_name = f"{SUBFOLDER}/{uploaded_file.name}"
-                    print(f"Se subira el archivo: {uploaded_file.name} a STORAGE")
-                    file_uri = upload_to_gcs(BUCKET_NAME, uploaded_file, destination_blob_name)
-                    st.session_state.uploaded_files_uris.append(file_uri)
-                    new_pdfs[i] = file_uri
-                    print(f"uri: {file_uri}")
-                update_uris()
+                # st.session_state.model_processing = True
                 
-                mm_message = create_multimodal_message(st.session_state.uploaded_files_uris, prompt)
-                print(f"**** All uris + promt: {mm_message}")
-                response = st.session_state.chat_session.send_message(mm_message, generation_config=generation_config, safety_settings=safety_settings, stream=True)
-                
-                print(f'======> response: {response}')
-                try:
-                    full_response = ""
-                    for chunk in response:
-                        word_count = 0
-                        random_int = random.randint(5,10)
-                        # random_int = 5
-                        for word in chunk.text:
-                            full_response+=word
-                            word_count+=1
-                            if word_count == random_int:
-                                time.sleep(0.05)
-                                message_placeholder.markdown(full_response + "_")
-                                word_count = 0
-                                random_int = random.randint(5,10)
-                    message_placeholder.markdown(full_response)
-                except Exception as e:
-                    st.exception(e)
+                new_pdfs = save_new_files(st.session_state.uploaded_files)
+                if st.session_state.uploaded_xlsx != None:
+                    mm_message = f"Usa el dataframe con nombre df con columnas {st.session_state.xlsx_df.columns} y genera el codigo python para {prompt}"
+                    response = st.session_state.chat_session.send_message(mm_message, generation_config=generation_config, safety_settings=safety_settings, stream=False)
+                    response = response.candidates[0].content.parts[0].text
+                    # response.parts[0].text
+                    print(f"xlsx response: \n{response}")
+                    # Extract the code block from the response
+                    start_index = response.find("```python") + len("```python")
+                    end_index = response.find("```", start_index)
+                    extracted_code = response[start_index:end_index].strip()
+
+                    # Display the extracted code
+                    # st.subheader("Extracted Code:")
+                    # st.code(extracted_code, language='python')
+
+                    # Execute the extracted code and capture the output
+                    with StringIO() as output_buffer:
+                        with redirect_stdout(output_buffer):
+                            exec(extracted_code)
+                        captured_output = output_buffer.getvalue()
+
+                    # Display the captured output
+                    st.subheader("Captured Output:")
+                    st.code(captured_output, language='python')
+                    full_response = captured_output
+                else:
+                    mm_message = create_multimodal_message(new_pdfs, prompt)
+                    response = st.session_state.chat_session.send_message(mm_message, generation_config=generation_config, safety_settings=safety_settings, stream=True)
+
+                    print(f'======> response: {response}')
+                    try:
+                        full_response = ""
+                        for chunk in response:
+                            word_count = 0
+                            random_int = random.randint(5,10)
+                            # random_int = 5
+                            for word in chunk.text:
+                                full_response+=word
+                                word_count+=1
+                                if word_count == random_int:
+                                    time.sleep(0.05)
+                                    message_placeholder.markdown(full_response + "_")
+                                    word_count = 0
+                                    random_int = random.randint(5,10)
+                        message_placeholder.markdown(full_response)
+                    except Exception as e:
+                        st.exception(e)
             
             # full_response = response.candidates[0].content.parts[0].text
-            print(f"full_response: {full_response}")
-            st.session_state.model_processing = False
+            # print(f"full_response: {full_response}")
+            # st.session_state.model_processing = False
             # with message_placeholder.container():
             #     st.markdown(full_response.replace("$", "\$"))  # noqa: W605
 
